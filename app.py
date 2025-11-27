@@ -15,7 +15,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 load_dotenv()
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 uri = "mongodb+srv://JH3617:StudySpace@studyspace.yb9yb.mongodb.net/?retryWrites=true&w=majority&appName=StudySpace"
 #if not uri:
     #uri = input(Enter your MongoDB URI:
@@ -110,7 +110,7 @@ def register_user():
                 "email": email,
                 "password": hashed
             })
-        return jsonify({"message": "User registered!"})
+        return jsonify({"message": "User registered!"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -205,4 +205,4 @@ def get_user_bookings():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
