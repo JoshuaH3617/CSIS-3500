@@ -1,17 +1,6 @@
 //holds all imports used in this component.
 import React, { useState, useEffect, useMemo } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-  ImageBackground,
-  ActivityIndicator,
-  Modal,
-  TextInput,
-  Platform,
-} from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ImageBackground, ActivityIndicator, Modal, TextInput, Platform,} from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "../AuthContext"; // gets logged user + token
