@@ -16,11 +16,11 @@ from werkzeug.security import generate_password_hash, check_password_hash
 load_dotenv()
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
-uri = "mongodb+srv://JH3617:StudySpace@studyspace.yb9yb.mongodb.net/?retryWrites=true&w=majority&appName=StudySpace"
-#if not uri:
-    #uri = input(Enter your MongoDB URI:
+uri = os.environ.get('MONGODB_URI')
+if not uri:
+    uri = input("Enter your MongoDB URI: ")
 
-SECRET_KEY = "open-access-secret"
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 def token_required(f):
     @wraps(f)
