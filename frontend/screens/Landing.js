@@ -1,109 +1,190 @@
-import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, ImageBackground, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { AuthContext } from "../AuthContext";
+// screens/Landing.js
 
-export default function Landing() {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState('');
-    const navigation = useNavigation();
+import React, { useState } from "react";
+import { View, Text, TextInput, StyleSheet, ActivityIndicator, ImageBackground, KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useAuth } from "../AuthContext";
 
-    const { setAuth } = useContext(AuthContext);
+function Landing({ navigation }) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ text: "", type: "" });
 
-    //handles login API call.
-    const handleLogin = async () => {
-        if (!username || !password) {
-            setMessage('Username/email and password are required.');
-            return;
-        }
-        setLoading(true);
-        setMessage("");
+  const { setAuth } = useAuth();
 
-        try {
-            //post to login endpoint.
-            const resp = await fetch('http://192.168.4.40:5000/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ usernameOrEmail: username, password })
-            });
-
-            const data = await resp.json();
-
-            if (!resp.ok) {
-                setMessage(data.message || 'Invalid credentials.');
-            } else {
-                //store token + username + full name
-                setAuth({
-                    username: data.username,
-                    fullName: data.fullName,
-                    token: data.token
-                });
-
-                navigation.navigate("Bookings");
-            }
-        } catch {
-            setMessage('Error logging in. Try again.');
-        }
-
-        setLoading(false);
+  const handleLogin = async () => {
+    if (!username || !password) {
+      setMessage({
+        text: "Username/email and password are required.",
+        type: "error",
+      });
+      return;
     }
 
-    return (
+    setLoading(true);
+    setMessage({ text: "", type: "" });
+
+    try {
+      const resp = await fetch("http://192.168.4.40:5000/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usernameOrEmail: username, password }),
+      });
+
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        setMessage({
+          text: data.message || "Invalid credentials.",
+          type: "error",
+        });
+      } else {
+        setAuth({
+          username: data.username,
+          fullName: data.fullName,
+          token: data.token,
+        });
+
+        setMessage({
+          text: "Login successful! Redirecting…",
+          type: "success",
+        });
+
+        setTimeout(() => navigation.replace("Bookings"), 800);
+      }
+    } catch (e) {
+      setMessage({
+        text: "Network error. Are you connected to the same Wi-Fi?",
+        type: "error",
+      });
+    }
+
+    setLoading(false);
+  };
+
+  return (
     <ImageBackground
-      source={{ uri: "https://upload.wikimedia.org/wikipedia/en/thumb/0/08/Nova_Library_West.JPG/1200px-Nova_Library_West.JPG" }}
+      source={{
+        uri: "https://upload.wikimedia.org/wikipedia/en/thumb/0/08/Nova_Library_West.JPG/1200px-Nova_Library_West.JPG",
+      }}
       style={styles.bg}
     >
-      <View style={styles.box}>
-        <Text style={styles.title}>Study Room Portal</Text>
-        <Text style={styles.subtitle}>Sign in to continue</Text>
+      <View style={styles.overlay} />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Username or Email"
-          value={username}
-          onChangeText={setUsername}
-        />
+      <KeyboardAvoidingView
+        style={styles.center}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <View style={styles.card}>
+          <Text style={styles.title}>Study Room Portal</Text>
+          <Text style={styles.subtitle}>Sign in to continue</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
+          <TextInput
+            placeholder="Username or Email"
+            placeholderTextColor="#777"
+            value={username}
+            onChangeText={setUsername}
+            autoCapitalize="none"
+            style={styles.input}
+          />
 
-        {loading ? (
-          <ActivityIndicator size="large" />
-        ) : (
-          <>
-            <TouchableOpacity style={styles.btn} onPress={handleLogin}>
-              <Text style={styles.btnText}>Login</Text>
-            </TouchableOpacity>
+          <TextInput
+            placeholder="Password"
+            placeholderTextColor="#777"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            style={styles.input}
+          />
 
-            <TouchableOpacity
-              style={styles.btn}
-              onPress={() => navigation.navigate("CreateAccount")}
+          {loading ? (
+            <ActivityIndicator size="large" style={{ marginTop: 12 }} />
+          ) : (
+            <>
+              {/* LOGIN BUTTON */}
+              <TouchableOpacity onPress={handleLogin} style={{ width: "100%" }}>
+                <LinearGradient colors={["#6db3ff", "#1e90ff"]} style={styles.button}>
+                  <Text style={styles.buttonText}>Login</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+
+              {/* CREATE ACCOUNT BUTTON */}
+              <TouchableOpacity
+                onPress={() => navigation.navigate("CreateAccount")}
+                style={{ width: "100%", marginTop: 12 }}
+              >
+                <LinearGradient
+                  colors={["#6db3ff", "#1e90ff"]}
+                  style={styles.button}
+                >
+                  <Text style={styles.buttonText}>Create Account</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {!!message.text && (
+            <Text
+              style={[
+                styles.message,
+                message.type === "success" ? styles.success : styles.error,
+              ]}
             >
-              <Text style={styles.btnText}>Create Account</Text>
-            </TouchableOpacity>
-          </>
-        )}
-
-        {message ? <Text style={styles.error}>{message}</Text> : null}
-      </View>
+              {message.text}
+            </Text>
+          )}
+        </View>
+      </KeyboardAvoidingView>
     </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  bg: { flex: 1, justifyContent: "center", alignItems: "center" },
-  box: { width: "85%", padding: 20, backgroundColor: "white", borderRadius: 12 },
-  title: { fontSize: 26, fontWeight: "bold", textAlign: "center" },
-  subtitle: { textAlign: "center", marginBottom: 20, color: "#555" },
-  input: { backgroundColor: "#eee", padding: 10, borderRadius: 8, marginBottom: 14 },
-  btn: { backgroundColor: "#1e90ff", padding: 12, borderRadius: 8, marginBottom: 10 },
-  btnText: { color: "white", textAlign: "center", fontWeight: "600" },
-  error: { color: "red", marginTop: 10, textAlign: "center" }
+  bg: { flex: 1 },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.45)" },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+
+  card: {
+    backgroundColor: "rgba(255,255,255,0.95)",
+    width: "90%",
+    maxWidth: 420,
+    padding: 30,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 6,
+    alignItems: "center",
+  },
+
+  title: { fontSize: 28, fontWeight: "700", marginBottom: 8, color: "#000" },
+  subtitle: { fontSize: 15, marginBottom: 18, color: "#444" },
+
+  input: {
+    width: "100%",
+    padding: 12,
+    marginBottom: 12,
+    borderRadius: 8,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    backgroundColor: "#fff",
+    color: "#000",
+  },
+
+  button: {
+    width: "100%",
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+
+  buttonText: { color: "#fff", fontWeight: "600", fontSize: 16 },
+
+  message: { marginTop: 16, fontSize: 15, textAlign: "center" },
+  success: { color: "green" },
+  error: { color: "red" },
 });
+
+export default Landing;

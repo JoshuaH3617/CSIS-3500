@@ -1,12 +1,10 @@
-import React, { createContext, useState, useContext } from "react";
+import React, { createContext, useContext, useState } from "react";
 
-// create global auth context
-export const AuthContext = createContext();
+//creates an empty context to store auth info.
+export const AuthContext = createContext(null);
 
-// wrapper provider so all screens can access auth
+//wraps the whole app and provides auth state to all children.
 export function AuthProvider({ children }) {
-
-  // global auth state values
   const [auth, setAuth] = useState({
     username: null,
     fullName: null,
@@ -19,7 +17,7 @@ export function AuthProvider({ children }) {
         username: auth.username,
         fullName: auth.fullName,
         token: auth.token,
-        setAuth, // allow updates
+        setAuth,
       }}
     >
       {children}
@@ -27,7 +25,6 @@ export function AuthProvider({ children }) {
   );
 }
 
-// custom hook so components can use auth context easily
 export function useAuth() {
   return useContext(AuthContext);
 }
